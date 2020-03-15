@@ -171,8 +171,42 @@ void DrawLine(int x1, int y1, int x2, int y2, int omitEndpoints = 0)
   int dx = x2 - x1;
   int dy = y2 - y1;
 
+  // horizontal line
+  if (dx != 0 && dy == 0)
+  {
+    // Handling line width
+    for (int i = 1; i <= lineWidth; i++)
+    {
+      // Odd goes under
+      if (i & 1)
+        DrawBasicLine(x1, y1 - ((i - 1) >> 1), x2, y2 - ((i - 1) >> 1), omitEndpoints, linePattern);
+      // Even goes over
+      else
+        DrawBasicLine(x1, y1 + (i >> 1), x2, y2 + (i >> 1), omitEndpoints, linePattern);
+    }
+  }
+  // vertical line
+  else if (dx == 0 && dy != 0)
+  {
+    // Handling line width
+    for (int i = 1; i <= lineWidth; i++)
+    {
+      // Odd goes under
+      if (i & 1)
+      {
+        // DrawBasicLine(x1 + (i/2), y1, x2 + (i/2), y2, omitEndpoints, linePattern);
+        DrawBasicLine(x1 - ((i - 1) >> 1), y1, x2 - ((i - 1) >> 1), y2, omitEndpoints, linePattern);
+      }
+      // Even goes over
+      else
+      {
+        // DrawBasicLine(x1 - ((i - 1)/2), y1, x2 - ((i - 1)/2), y2, omitEndpoints, linePattern);
+        DrawBasicLine(x1 + (i >> 1), y1, x2 + (i >> 1), y2, omitEndpoints, linePattern);
+      }
+    }
+  }
   // Handling left to right direction
-  if (dx > 0)
+  else if (dx > 0)
   {
     // Handling top to bottom direction
     if (dy > 0)
@@ -189,7 +223,7 @@ void DrawLine(int x1, int y1, int x2, int y2, int omitEndpoints = 0)
       }
     }
     // Handling bottom to top direction
-    else if (dy)
+    else
     {
       // Handling line width
       for (int i = 1; i <= lineWidth; i++)
@@ -202,23 +236,9 @@ void DrawLine(int x1, int y1, int x2, int y2, int omitEndpoints = 0)
           DrawBasicLine(x1 + (i >> 1), y1, x2, y2 + (i >> 1), omitEndpoints, linePattern);
       }
     }
-    // Handling horizontal line
-    else
-    {
-      // Handling line width
-      for (int i = 1; i <= lineWidth; i++)
-      {
-        // Odd goes under
-        if (i & 1)
-          DrawBasicLine(x1, y1 - ((i - 1) >> 1), x2, y2 - ((i - 1) >> 1), omitEndpoints, linePattern);
-        // Even goes over
-        else
-          DrawBasicLine(x1, y1 + (i >> 1), x2, y2 + (i >> 1), omitEndpoints, linePattern);
-      }
-    }
   }
   // Handling right to left direction
-  else if (dx)
+  else
   {
     // Handling top to bottom direction
     if (dy > 0)
@@ -235,49 +255,21 @@ void DrawLine(int x1, int y1, int x2, int y2, int omitEndpoints = 0)
       }
     }
     // Handling bottom to top direction
-    else if (dy)
-    {
-      // Handling line width
-      for (int i = 1; i <= lineWidth; i++)
-      {
-        // Odd goes under
-        if (i & 1)
-          DrawBasicLine(x1 - ((i - 1) >> 1), y1, x2, y2 + ((i - 1) >> 1), omitEndpoints, linePattern);
-        // Even goes over
-        else
-          DrawBasicLine(x1, y1 - (i >> 1), x2 + (i >> 1), y2, omitEndpoints, linePattern);
-      }
-    }
-    // Handling horizontal line
     else
     {
-      // Handling line width
-      for (int i = 1; i <= lineWidth; i++)
+      // Check in case of point
+      if (dy != 0)
       {
-        // Odd goes under
-        if (i & 1)
-          DrawBasicLine(x1, y1 - ((i - 1) >> 1), x2, y2 - ((i - 1) >> 1), omitEndpoints, linePattern);
-        // Even goes over
-        else
-          DrawBasicLine(x1, y1 + (i >> 1), x2, y2 + (i >> 1), omitEndpoints, linePattern);
-      }
-    }
-  }
-  // Handling for vertical line
-  else
-  {
-    // Check in case of point
-    if (dy != 0)
-    {
-      // Handling line width
-      for (int i = 1; i <= lineWidth; i++)
-      {
-        // Odd goes under
-        if (i & 1)
-          DrawBasicLine(x1 + (i >> 1), y1, x2 + (i >> 1), y2, omitEndpoints, linePattern);
-        // Even goes over
-        else
-          DrawBasicLine(x1 - ((i - 1) >> 1), y1, x2 - ((i - 1) >> 1), y2, omitEndpoints, linePattern);
+        // Handling line width
+        for (int i = 1; i <= lineWidth; i++)
+        {
+          // Odd goes under
+          if (i & 1)
+            DrawBasicLine(x1 - ((i - 1) >> 1), y1, x2, y2 + ((i - 1) >> 1), omitEndpoints, linePattern);
+          // Even goes over
+          else
+            DrawBasicLine(x1, y1 - (i >> 1), x2 + (i >> 1), y2, omitEndpoints, linePattern);
+        }
       }
     }
   }
@@ -288,12 +280,12 @@ void DrawRect(int x1, int y1, int x2, int y2)
 {
   // Top side
   DrawLine(x1, y1, x2, y1, 1);
-  // Right side
-  DrawLine(x2, y1, x2, y2, 0);
+  // Right side w/ hacky corner pixel fix
+  DrawLine(x2, y1, x2, y2 + 1, 0);
   // Left side
-  DrawLine(x1, y2, x1, y1, 0);
-  // Bottom side
-  DrawLine(x2, y2, x1, y2, 1);
+  DrawLine(x1, y1, x1, y2, 0);
+  // Bottom side w/ hacky corner pixel fix
+  DrawLine(x1, y2, x2 + 1, y2, 1);
 }
 
 // Interface to draw filled rectangles
@@ -303,16 +295,15 @@ void DrawBox(int x1, int y1, int x2, int y2)
   int widthCor = (lineWidth >> 1);
   int dx1;
   int dx2 = max(x1, x2) - widthCor;
-  int dy1 = min(y1, y2) + widthCor;
+  int dy1 = min(y1, y2) + widthCor + 1;
   int dy2 = max(y1, y2) - widthCor;
   int pixelFlag;
-
   std::deque<uint32_t>::iterator patternIter;
-  patternIter = fillPattern.begin();
   uint32_t tempPattern;
 
+  patternIter = fillPattern.begin();
   // Scanline loop
-  for (; dy1 < dy2; dy1++)
+  for (; dy1 <= dy2; dy1++)
   {
     // Use temp pattern to avoid gradual drift of original line pattern
     tempPattern = *patternIter;
@@ -415,10 +406,7 @@ void initEdgeTable(Edge **edgeTable, TImageCoordList *coordList)
     if (++next2 == coordList->end())
       next2 = coordList->begin();
 
-    if (y1 == y2)
-      continue;
-
-    if (y1 < y2)
+    if (y1 <= y2)
     {
       insertEdge(&edgeTable[y1], createEdge(*current, *next, yNext));
     }
@@ -471,7 +459,7 @@ void scanFill(int scan, Edge *activeList, u_int32_t *pattern)
     if (count & 1)
     {
       startx = current->dx + (lineWidth >> 2) + 1;
-      endx = next->dx - ((lineWidth - 1) >> 2);
+      endx = next->dx - ((lineWidth - 1) >> 2) + 1;
       for (x = startx; x < endx; x++)
       {
         pixelFlag = GetAndRotatePixelFlag(pattern);
@@ -576,17 +564,18 @@ void DrawBasicEllipse(int x, int y, int rx, int ry)
 {
   int a = 2 * rx;
   int b = 2 * ry;
-  long dx = 4 * (1 - a) * b * b;
-  long dy = 4 * a * a;
-  long err = dx + dy;
-  long err2;
+  int b1 = b & 1;
+  long long dx = 4 * (1 - a) * b * b;
+  long long dy = 4 * (b1 + 1) * a * a;
+  long long err = dx + dy + b1 * a * a;
+  long long err2;
 
   int x0 = x - rx;
   int y0 = y - ry + (b + 1) / 2;
   int x1 = x + rx;
   int y1 = y0;
   a *= 8 * a;
-  long b1 = 8 * b * b;
+  b1 = 8 * b * b;
 
   int pixelFlag;
   uint32_t pattern = linePattern;
@@ -606,15 +595,15 @@ void DrawBasicEllipse(int x, int y, int rx, int ry)
     {
       y0++;
       y1--;
-      err += dy;
       dy += a;
+      err += dy;
     }
-    if (err2 >= dx)
+    if (err2 >= dx || 2 * err > dy)
     {
       x0++;
       x1--;
-      err += dx;
       dx += b1;
+      err += dx;
     }
   } while (x0 <= x1);
 
@@ -624,12 +613,12 @@ void DrawBasicEllipse(int x, int y, int rx, int ry)
     if (pixelFlag)
     {
       DrawPixel(x0 - 1, y0, pixelColor1, alphaChannel1);
-      DrawPixel(x1 - 1, y0, pixelColor1, alphaChannel1);
+      DrawPixel(x1 + 1, y0, pixelColor1, alphaChannel1);
       DrawPixel(x0 - 1, y1, pixelColor1, alphaChannel1);
-      DrawPixel(x1 - 1, y1, pixelColor1, alphaChannel1);
+      DrawPixel(x1 + 1, y1, pixelColor1, alphaChannel1);
     }
     y0++;
-    y1++;
+    y1--;
   }
 }
 
